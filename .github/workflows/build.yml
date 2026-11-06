@@ -1,0 +1,62 @@
+name: Build PDV Assuncao Installer
+
+on:
+  push:
+    tags:
+      - 'v*' # Dispara automaticamente ao criar uma tag (ex: v1.0.0)
+  workflow_dispatch: # Adiciona o botão "Run workflow" no GitHub para testes manuais
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- 1. ETAPA PYTHON: COMPILA O BACKEND ---
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Certifique-se de que seu requirements.txt inclui fastapi, uvicorn, motor e dnspython
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build Python Backend
+        run: |
+          # Empacota o backend forçando a inclusão das bibliotecas do MongoDB
+          pyinstaller main.py --name api --onefile --noconsole --distpath backend_dist --hidden-import=pymongo --hidden-import=motor --hidden-import=dns --hidden-import=motor.motor_asyncio
+
+      # --- 2. ETAPA REACT: COMPILA O FRONTEND ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm install
+
+      - name: Build React Frontend
+        run: npm run build
+
+      # --- 3. ETAPA ELECTRON: GERA O INSTALADOR ---
+      - name: Build Electron Installer
+        env:
+          # Permite que o electron-builder faça upload do executável nas Releases do GitHub
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx electron-builder --win --publish always
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Instalador-PDV-Assuncao
+          # O electron-builder salva o .exe gerado na pasta dist/
+          path: dist/*.exe
