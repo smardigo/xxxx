@@ -32,7 +32,7 @@ jobs:
         run: |
           # Use relative API so it works without CORS inside pywebview
           "REACT_APP_BACKEND_URL=" | Out-File -Encoding ascii .env.production.local
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       # -----------------------------------------------------------
