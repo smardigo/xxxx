@@ -1,7 +1,9 @@
+
 {
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "main": "main.js",
   "dependencies": {
     "@hookform/resolvers": "5.0.1",
     "@radix-ui/react-accordion": "1.2.8",
@@ -63,7 +65,9 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "electron:start": "electron .",
+    "dist": "electron-builder --win"
   },
   "browserslist": {
     "production": [
@@ -86,6 +90,8 @@
     "@types/lodash": "4.17.24",
     "autoprefixer": "10.4.20",
     "dotenv": "16.4.5",
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1",
     "eslint": "9.23.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
@@ -139,14 +145,36 @@
     "**/tinyglobby/picomatch": "4.0.4",
     "http-proxy-middleware": "2.0.10"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
-}
-"build": {
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "build": {
+    "appId": "br.com.assuncaoepaladini.pdv",
+    "productName": "PDV Assunção",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "build/**/*",
+      "main.js"
+    ],
     "extraResources": [
       {
         "from": "backend_dist/",
         "to": "backend",
-        "filter": ["api.exe"]
+        "filter": [
+          "api.exe"
+        ]
       }
-    ]
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PDV Assunção"
+    }
   }
+}
