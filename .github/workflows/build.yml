@@ -22,8 +22,8 @@ jobs:
           cache: 'pip'
 
       - name: Install Python Dependencies
-        # SE O SEU PYTHON ESTIVER EM UMA PASTA, DESCOMENTE A LINHA ABAIXO E COLOQUE O NOME DELA:
-        # working-directory: ./backend
+        # AGORA SIM! Entra na pasta backend antes de rodar os comandos
+        working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
           pip install fastapi uvicorn motor pymongo dnspython pydantic starlette
@@ -31,12 +31,9 @@ jobs:
           pip install pyinstaller
 
       - name: Build Python Backend
-        # SE O SEU PYTHON ESTIVER EM UMA PASTA, DESCOMENTE A LINHA ABAIXO:
-        # working-directory: ./backend
-        run: |
-          # Substitua 'server.py' pelo nome exato do seu arquivo Python principal.
-          # Este comando ignora o .spec e compila direto do código fonte.
-          pyinstaller server.py --name server --onefile --noconsole --hidden-import=pymongo --hidden-import=motor --hidden-import=dns --hidden-import=motor.motor_asyncio
+        # Entra na pasta backend e compila o server.py
+        working-directory: ./backend
+        run: pyinstaller server.py --name server --onefile --noconsole --hidden-import=pymongo --hidden-import=motor --hidden-import=dns --hidden-import=motor.motor_asyncio
 
       # --- 2. ETAPA REACT: COMPILA O FRONTEND ---
       - name: Setup Node.js
