@@ -22,7 +22,6 @@ jobs:
           cache: 'pip'
 
       - name: Install Python Dependencies
-        # AGORA SIM! Entra na pasta backend antes de rodar os comandos
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
@@ -31,7 +30,6 @@ jobs:
           pip install pyinstaller
 
       - name: Build Python Backend
-        # Entra na pasta backend e compila o server.py
         working-directory: ./backend
         run: pyinstaller server.py --name server --onefile --noconsole --hidden-import=pymongo --hidden-import=motor --hidden-import=dns --hidden-import=motor.motor_asyncio
 
@@ -40,24 +38,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          # Adicionado para corrigir o erro "Dependencies lock file is not found"
-          cache-dependency-path: './frontend/package-lock.json' 
+          cache: 'yarn' # Modificado para yarn
+          cache-dependency-path: './frontend/yarn.lock' # Apontando para o arquivo do yarn
 
       - name: Install Node Dependencies
         working-directory: ./frontend
-        run: npm install
+        run: yarn install # Modificado para yarn
 
       - name: Build React Frontend
         working-directory: ./frontend
-        run: npm run build
+        run: yarn build # Modificado para yarn
 
       # --- 3. ETAPA ELECTRON: GERA O INSTALADOR ---
       - name: Build Electron Installer
         working-directory: ./frontend
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
+        run: yarn dist # Modificado para yarn
 
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
