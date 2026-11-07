@@ -3,8 +3,8 @@ name: Build PDV Assuncao Installer
 on:
   push:
     tags:
-      - 'v*' # Dispara automaticamente ao criar uma tag (ex: v1.0.0)
-  workflow_dispatch: # Adiciona o botão "Run workflow" no GitHub para testes manuais
+      - 'v*' # Roda automaticamente ao criar uma tag (ex: v1.0.0)
+  workflow_dispatch: # Permite rodar o workflow manualmente com um botão no GitHub
 
 jobs:
   build-windows:
@@ -24,14 +24,18 @@ jobs:
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          # Certifique-se de que seu requirements.txt inclui fastapi, uvicorn, motor e dnspython
-          pip install -r requirements.txt
+          
+          # Força a instalação das dependências para evitar o erro "PackageNotFoundError"
+          pip install fastapi uvicorn motor pymongo dnspython pydantic starlette
+          
+          # Instala outras dependências se houver o requirements.txt na raiz
+          if (Test-Path requirements.txt) { pip install -r requirements.txt }
+          
           pip install pyinstaller
 
       - name: Build Python Backend
-        run: |
-          # Empacota o backend forçando a inclusão das bibliotecas do MongoDB
-          pyinstaller main.py --name api --onefile --noconsole --distpath backend_dist --hidden-import=pymongo --hidden-import=motor --hidden-import=dns --hidden-import=motor.motor_asyncio
+        # Usa o seu arquivo .spec para gerar a build
+        run: pyinstaller server.spec --noconfirm
 
       # --- 2. ETAPA REACT: COMPILA O FRONTEND ---
       - name: Setup Node.js
@@ -41,22 +45,23 @@ jobs:
           cache: 'npm'
 
       - name: Install Node Dependencies
+        working-directory: ./frontend
         run: npm install
 
       - name: Build React Frontend
+        working-directory: ./frontend
         run: npm run build
 
       # --- 3. ETAPA ELECTRON: GERA O INSTALADOR ---
       - name: Build Electron Installer
+        working-directory: ./frontend
         env:
-          # Permite que o electron-builder faça upload do executável nas Releases do GitHub
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx electron-builder --win --publish always
+        run: npm run dist
 
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Instalador-PDV-Assuncao
-          # O electron-builder salva o .exe gerado na pasta dist/
-          path: dist/*.exe
+          # Busca o executável na pasta dist_electron dentro de frontend
+          path: frontend/dist_electron/*.exe
